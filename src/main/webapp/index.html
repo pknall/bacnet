@@ -1,0 +1,106 @@
+<!--
+  ~ Copyright (c) 2010 Automated Logic Corporation
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~ of this software and associated documentation files (the "Software"), to deal
+  ~ in the Software without restriction, including without limitation the rights
+  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the Software is
+  ~ furnished to do so, subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in
+  ~ all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  ~ THE SOFTWARE.
+  -->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <!--
+    This tree is popuplated from AJAX calls to /servlets/treedata (DiscoveryServlet.java).
+    Selection of an object will cause the bottom of the page to be loaded with the
+    URL specified when the object node is built (data from DiscoveryServlet).  This
+    will be analoginput.jsp or schedule.jsp.
+    -->
+    <title>BACnet Discovery</title>
+    <script type="text/javascript" src="jquery/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="jquery/ui.core.js"></script>
+    <script type="text/javascript" src="jquery/jquery.cookie.js"></script>
+
+    <link rel='stylesheet' type='text/css' href='skin/ui.dynatree.css'>
+    <script type="text/javascript" src="js/jquery.dynatree.js"></script>
+    <style type="text/css">
+        #tree {
+            width:100%;
+            height:350px;
+            overflow:scroll;
+        }
+
+        div.ui-dynatree-container {
+            border:none;
+        }
+
+        td { vertical-align: top; }
+        #vborders td, #vborders th {
+            border-right:solid black 1px;
+            padding: 2px 5px 0px 5px;
+        }
+
+        .excell {
+            border-bottom:solid black 1px;
+        }
+    </style>
+
+    <script type='text/javascript'>
+    $(function(){
+        // Attach the dynatree widget to an existing <div id="tree"> element
+        // and pass the tree options as an argument to the dynatree() function:
+        $("#tree").dynatree({
+            title: "Networks",
+            rootVisible: false,
+            selectMode:1,
+            autoFocus:false,
+
+            initAjax: {
+                url: "servlets/treedata",
+                data: { }
+            },
+
+            onLazyRead: function(dtnode) {
+                dtnode.appendAjax({
+                    url:"servlets/treedata",
+                    data: {
+                        type: dtnode.data.childtype,
+                        id: dtnode.data.id,
+                        devid: dtnode.data.devid
+                    }
+                })
+            },
+
+            onActivate: function(node) {
+                if (node.data.renderpage) {
+                    $.get(node.data.renderpage, { id: node.data.id, devid: node.data.devid}, function(data) {
+                        $('#object_value').html(data)
+                    })
+                } else {
+                    $('#object_value').empty()
+                }
+            },
+
+            cache: false
+        });
+    });
+    </script>
+</head>
+<body>
+<div id="tree"></div>
+<div id="object_value"></div>
+</body>
+</html>
